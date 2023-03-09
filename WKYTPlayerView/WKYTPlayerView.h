@@ -78,12 +78,30 @@ typedef NS_ENUM(NSInteger, WKYTPlayerError) {
 - (void)playerView:(nonnull WKYTPlayerView *)playerView didChangeToState:(WKYTPlayerState)state;
 
 /**
+ * Callback invoked when player state has changed, e.g. stopped or started playback.
+ *
+ * @param playerView The WKYTPlayerView instance where playback state has changed.
+ * @param state WKYTPlayerState designating the new playback state.
+ * @param currentTime The elapsed time in seconds since the video started playing.
+ */
+- (void)playerView:(nonnull WKYTPlayerView *)playerView didChangeToState:(WKYTPlayerState)state currentTime:(float)currentTime;
+
+/**
  * Callback invoked when playback quality has changed.
  *
  * @param playerView The WKYTPlayerView instance where playback quality has changed.
  * @param quality WKYTPlaybackQuality designating the new playback quality.
  */
 - (void)playerView:(nonnull WKYTPlayerView *)playerView didChangeToQuality:(WKYTPlaybackQuality)quality;
+
+/**
+ * Callback invoked when playback rate has changed.
+ *
+ * @param playerView The WKYTPlayerView instance where playback rate has changed.
+ * @param rate WKYTPlaybackQuality designating the new playback rate.
+ * @param currentTime The elapsed time in seconds since the video started playing.
+ */
+- (void)playerView:(nonnull WKYTPlayerView *)playerView didChangeToRate:(float)rate currentTime:(float)currentTime;
 
 /**
  * Callback invoked when an error has occured.

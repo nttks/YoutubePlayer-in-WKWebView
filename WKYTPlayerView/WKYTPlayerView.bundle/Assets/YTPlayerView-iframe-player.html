@@ -63,8 +63,9 @@
     }
 
     function onStateChange(event) {
-        if (!error) {            
-            window.location.href = 'ytplayer://onStateChange?data=' + event.data;
+        if (!error) {
+            time = player.getCurrentTime()
+            window.location.href = 'ytplayer://onStateChange?data=' + event.data + '&time=' +time;
         }
         else {
             error = false;
@@ -73,6 +74,11 @@
 
     function onPlaybackQualityChange(event) {
         window.location.href = 'ytplayer://onPlaybackQualityChange?data=' + event.data;
+    }
+
+    function onPlaybackRateChange(event) {
+        time = player.getCurrentTime()
+        window.location.href = 'ytplayer://onPlaybackRateChange?data=' + event.data + '&time=' +time;
     }
 
     function onPlayerError(event) {

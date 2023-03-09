@@ -50,6 +50,7 @@ NSString static *const kWKYTPlayerErrorSameAsNotEmbeddableErrorCode = @"150";
 NSString static *const kWKYTPlayerCallbackOnReady = @"onReady";
 NSString static *const kWKYTPlayerCallbackOnStateChange = @"onStateChange";
 NSString static *const kWKYTPlayerCallbackOnPlaybackQualityChange = @"onPlaybackQualityChange";
+NSString static *const kWKYTPlayerCallbackOnPlaybackRateChange = @"onPlaybackRateChange";
 NSString static *const kWKYTPlayerCallbackOnError = @"onError";
 NSString static *const kWKYTPlayerCallbackOnPlayTime = @"onPlayTime";
 
@@ -717,8 +718,14 @@ NSString static *const kWKYTPlayerSyndicationRegexPattern = @"^https://tpc.googl
     // so we parse out the value.
     NSString *query = url.query;
     NSString *data;
+    NSString *time;
     if (query) {
-        data = [query componentsSeparatedByString:@"="][1];
+        if ([action isEqual:kWKYTPlayerCallbackOnStateChange] || [action isEqual:kWKYTPlayerCallbackOnPlaybackRateChange]) {
+            data = [[query componentsSeparatedByString:@"="][1] stringByReplacingOccurrencesOfString:@"&time" withString:@""];
+            time = [query componentsSeparatedByString:@"="][2];
+        } else {
+            data = [query componentsSeparatedByString:@"="][1];
+        }
     }
     
     if ([action isEqual:kWKYTPlayerCallbackOnReady]) {
@@ -729,7 +736,7 @@ NSString static *const kWKYTPlayerSyndicationRegexPattern = @"^https://tpc.googl
             [self.delegate playerViewDidBecomeReady:self];
         }
     } else if ([action isEqual:kWKYTPlayerCallbackOnStateChange]) {
-        if ([self.delegate respondsToSelector:@selector(playerView:didChangeToState:)]) {
+        if ([self.delegate respondsToSelector:@selector(playerView:didChangeToState:currentTime:)]) {
             WKYTPlayerState state = kWKYTPlayerStateUnknown;
             
             if ([data isEqual:kWKYTPlayerStateEndedCode]) {
@@ -746,12 +753,16 @@ NSString static *const kWKYTPlayerSyndicationRegexPattern = @"^https://tpc.googl
                 state = kWKYTPlayerStateUnstarted;
             }
             
-            [self.delegate playerView:self didChangeToState:state];
+            [self.delegate playerView:self didChangeToState:state currentTime:[time floatValue]];
         }
     } else if ([action isEqual:kWKYTPlayerCallbackOnPlaybackQualityChange]) {
         if ([self.delegate respondsToSelector:@selector(playerView:didChangeToQuality:)]) {
             WKYTPlaybackQuality quality = [WKYTPlayerView playbackQualityForString:data];
             [self.delegate playerView:self didChangeToQuality:quality];
+        }
+    } else if ([action isEqual:kWKYTPlayerCallbackOnPlaybackRateChange]) {
+        if ([self.delegate respondsToSelector:@selector(playerView:didChangeToRate:currentTime:)]) {
+            [self.delegate playerView:self didChangeToRate:[data floatValue] currentTime:[time floatValue]];
         }
     } else if ([action isEqual:kWKYTPlayerCallbackOnError]) {
         if ([self.delegate respondsToSelector:@selector(playerView:receivedError:)]) {
@@ -866,6 +877,7 @@ NSString static *const kWKYTPlayerSyndicationRegexPattern = @"^https://tpc.googl
                                       @"onReady" : @"onReady",
                                       @"onStateChange" : @"onStateChange",
                                       @"onPlaybackQualityChange" : @"onPlaybackQualityChange",
+                                      @"onPlaybackRateChange" : @"onPlaybackRateChange",
                                       @"onError" : @"onPlayerError"
                                       };
     NSMutableDictionary *playerParams = [[NSMutableDictionary alloc] init];
