@@ -289,18 +289,15 @@ NSString static *const kWKYTPlayerSyndicationRegexPattern = @"^https://tpc.googl
 
 - (void)getAvailablePlaybackRates:(void (^ __nullable)(NSArray * __nullable availablePlaybackRates, NSError * __nullable error))completionHandler
 {
-    [self stringFromEvaluatingJavaScript:@"player.getAvailablePlaybackRates();" completionHandler:^(NSString * _Nullable response, NSError * _Nullable error) {
+    [self stringFromEvaluatingJavaScript:@"player.getAvailablePlaybackRates().toString();" completionHandler:^(NSString * _Nullable response, NSError * _Nullable error) {
         if (completionHandler) {
             if (error) {
                 completionHandler(nil, error);
             } else {
-                NSData *playbackRateData = [response dataUsingEncoding:NSUTF8StringEncoding];
-                NSError *jsonDeserializationError;
-                NSArray *playbackRates = [NSJSONSerialization JSONObjectWithData:playbackRateData
-                                                                         options:kNilOptions
-                                                                           error:&jsonDeserializationError];
-                if (jsonDeserializationError) {
-                    completionHandler(nil, jsonDeserializationError);
+                NSArray *rawRateValues = [response componentsSeparatedByString:@","];
+                NSMutableArray *playbackRates = [[NSMutableArray alloc] init];
+                for (NSString *rawRateValue in rawRateValues) {
+                    [playbackRates addObject:[NSNumber numberWithFloat:[rawRateValue floatValue]]];
                 }
 
                 completionHandler(playbackRates, nil);
@@ -330,6 +327,8 @@ NSString static *const kWKYTPlayerSyndicationRegexPattern = @"^https://tpc.googl
     [self stringFromEvaluatingJavaScript:@"player.getVideoLoadedFraction();" completionHandler:^(NSString * _Nullable response, NSError * _Nullable error) {
         if (completionHandler) {
             if (error) {
+                completionHandler(0, error);
+            } else if ([response isEqual:[NSNull null]]) {
                 completionHandler(0, error);
             } else {
                 completionHandler([response floatValue], nil);
